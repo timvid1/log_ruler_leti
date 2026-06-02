@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Логарифмическая линейка: Умножение</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <h2 style="text-align: center;">Интерактивная логарифмическая линейка</h2>
+
+    <!-- Переключатель -->
+    <div class="scale-selector">
+        <button class="scale-btn active" data-cycles="1">C/D (1 цикл)</button>
+        <button class="scale-btn" data-cycles="2">A/B (2 цикла)</button>
+        <button class="scale-btn" data-cycles="3">K (3 цикла)</button>
+    </div>
+
+    <div class="ruler-container" id="rulerBox">
+        <!-- Бегунок -->
+        <div id="cursor" style="left: 100px;"></div>
+
+        <!-- Верхняя неподвижная шкала -->
+        <div class="ruler top-ruler" id="topRuler"></div>
+
+        <!-- Нижняя подвижная шкала -->
+        <div class="ruler bottom-ruler" id="bottomRuler" style="transform: translateX(0px);"></div>
+    </div>
+
+    <div class="info-panel">
+        Формула: <span id="valA">1.000</span> (верх) × <span id="valB">1.000</span> (нижн) = <span id="valResult">1.000</span>
+    </div>
+
+    <div class="instructions">
+        <strong>Как умножать:</strong><br>
+        1. <strong>Зажмите мышку</strong> на нижней линейке и двигайте её.<br>
+        2. Совместите цифру <strong>1</strong> на нижней линейке с первым множителем на верхней линейке.<br>
+        3. <strong>Перетащите красный бегунок</strong> в место второго множителя нижней линейки.<br>
+        4. На верхней линейке под красной чертой вы увидите точный результат умножения!
+    </div>
+
+    <script src="app.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,112 @@
+
+/* Контейнеры всякие */
+body {
+    font-family: sans-serif;
+    background: #f4f4f9;
+    color: #333;
+    padding: 20px;
+    user-select: none;
+}
+.ruler-container {
+    position: relative;
+    width: 1000px;
+    margin: 50px auto;
+    background: #fff;
+    border: 2px solid #333;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+/* Стили линеек */
+.ruler {
+    position: relative;
+    height: 60px;
+    width: 2000px; /* Запас для сдвига */
+    transition: transform 0.05s linear;
+}
+.top-ruler {
+    background: #fcfcfc;
+    border-bottom: 1px dashed #999;
+}
+.bottom-ruler {
+    background: #fff9e6;
+    cursor: grab;
+    border-top: 1px dashed #999;
+}
+.bottom-ruler:active {
+    cursor: grabbing;
+}
+/* Деления и текст */
+.tick {
+    position: absolute;
+    width: 1px;
+    background: #000;
+}
+.tick.major { height: 20px; width: 2px; }
+.tick.medium { height: 12px; }
+.tick.minor { height: 7px; background: #666; }
+
+.top-ruler .tick { bottom: 0; }
+.bottom-ruler .tick { top: 0; }
+
+.label {
+    position: absolute;
+    font-size: 12px;
+    font-weight: bold;
+    transform: translateX(-50%);
+}
+.top-ruler .label { bottom: 22px; }
+.bottom-ruler .label { top: 22px; }
+
+/* Бегунок */
+    #cursor {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: rgba(255, 0, 0, 0.8);
+    box-shadow: 0 0 4px rgba(255,0,0,0.5);
+    cursor: ew-resize;
+    z-index: 10;
+}
+
+.info-panel {
+    text-align: center;
+    font-size: 18px;
+    margin-top: 20px;
+}
+.info-panel span {
+    font-weight: bold;
+    color: #d32f2f;
+}
+.instructions {
+    max-width: 600px;
+    margin: 20px auto;
+    font-size: 14px;
+    line-height: 1.5;
+    background: #fff;
+    padding: 15px;
+    border-radius: 5px;
+}
+
+.scale-selector {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 20px auto;
+    max-width: 1000px;
+}
+.scale-btn {
+    padding: 8px 16px;
+    border: 2px solid #333;
+    background: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+.scale-btn:hover { background: #eee; }
+.scale-btn.active {
+    background: #d32f2f;
+    color: #fff;
+    border-color: #d32f2f;
+}
