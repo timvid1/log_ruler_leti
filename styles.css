@@ -127,6 +127,7 @@ body {
     font-family: sans-serif;
     transition: border-color 0.2s;
     -moz-appearance: textfield; /* стрелочки в Firefox */
+    appearance: textfield; /* чтобы не ругалось */
 }
 
 /* стрелочки в Chrome/Safari/Edge */
