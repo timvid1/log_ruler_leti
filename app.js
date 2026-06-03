@@ -143,7 +143,83 @@ window.addEventListener('mouseup', () => {
     isDraggingCursor = false;
 });
 
+/* Коммит 03.06.2026 */
+/* Поля ввода значений */
+// Функция установки позиции линейки по значению A
+function setRulerByValueA(value) {
+    if (value < 1 || value > 10) return;
+    
+    const logA = Math.log10(value);
+    bottomOffset = logA * RULER_WIDTH;
+    
+    // Ограничение сдвига линейки
+    if (bottomOffset < -RULER_WIDTH) bottomOffset = -RULER_WIDTH;
+    if (bottomOffset > RULER_WIDTH) bottomOffset = RULER_WIDTH;
+    
+    bottomRuler.style.transform = `translateX(${bottomOffset}px)`;
+}
+
+// Функция установки позиции курсора по значению B
+function setCursorByValueB(value) {
+    if (value < 1 || value > 10) return;
+    
+    const logB = Math.log10(value);
+    const cursorX = (logB * RULER_WIDTH) + bottomOffset;
+    
+    // Ограничение курсора пределами контейнера
+    if (cursorX < 0) cursorX = 0;
+    if (cursorX > RULER_WIDTH) cursorX = RULER_WIDTH;
+    
+    cursor.style.left = `${cursorX}px`;
+}
+
+// Обработчик ввода значения A
+valA.addEventListener('input', function() {
+    const value = parseFloat(this.value);
+    if (isNaN(value) || value < 1 || value > 10) return;
+    
+    setRulerByValueA(value);
+    calculateValues();
+});
+
+// Обработчик ввода значения B
+valB.addEventListener('input', function() {
+    const value = parseFloat(this.value);
+    if (isNaN(value) || value < 1 || value > 10) return;
+    
+    setCursorByValueB(value);
+    calculateValues();
+});
+
+// Модификация функции calculateValues с обработкой инпутов
 // Математика
+function calculateValues() {
+    const cursorX = parseFloat(cursor.style.left);
+
+    // Значение на верхней шкале под курсором
+    const topLog = cursorX / RULER_WIDTH;
+    const topValue = Math.pow(10, topLog);
+
+    // Значение на нижней шкале под курсором с учетом сдвига линейки
+    const bottomLog = (cursorX - bottomOffset) / RULER_WIDTH;
+    let bottomValue = Math.pow(10, bottomLog);
+
+    // Расчет множителей для вывода на экран
+    const aLog = -bottomOffset / RULER_WIDTH;
+    const valueA = 1 / Math.pow(10, aLog);
+
+    // Обновляем input поля только если они не в фокусе
+    if (document.activeElement !== valA) {
+        valA.value = valueA.toFixed(3);
+    }
+    if (document.activeElement !== valB) {
+        valB.value = bottomValue.toFixed(3);
+    }
+    valResult.value = topValue.toFixed(3);
+}
+
+// Математика старая
+/*
 function calculateValues() {
     const cursorX = parseFloat(cursor.style.left);
 
@@ -160,6 +236,7 @@ function calculateValues() {
     valB.innerText = bottomValue.toFixed(3);
     valResult.innerText = topValue.toFixed(3);
 }
+*/
 
 // Первичный расчет при старте
 calculateValues();

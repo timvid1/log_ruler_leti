@@ -28,9 +28,11 @@
         <div class="ruler bottom-ruler" id="bottomRuler" style="transform: translateX(0px);"></div>
     </div>
 
-    <div class="info-panel">
-        Формула: <span id="valA">1.000</span> (верх) × <span id="valB">1.000</span> (нижн) = <span id="valResult">1.000</span>
-    </div>
+<div class="info-panel">
+    Формула: <input type="number" id="valA" value="1.000" step="0.001" min="1" max="10"> (верх) × 
+    <input type="number" id="valB" value="1.000" step="0.001" min="1" max="10"> (нижн) = 
+    <input type="number" id="valResult" value="1.000" step="0.001" readonly>
+</div>
 
     <div class="instructions">
         <strong>Как умножать:</strong><br>

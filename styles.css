@@ -110,3 +110,44 @@ body {
     color: #fff;
     border-color: #d32f2f;
 }
+
+/* Коммит 03.06.2026 */
+/* Стили полей ввода значений */
+.info-panel input {
+    width: 70px;
+    padding: 2px 4px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #d32f2f;
+    border: none;
+    border-bottom: 1px dashed transparent;
+    border-radius: 0;
+    text-align: center;
+    background: transparent;
+    font-family: sans-serif;
+    transition: border-color 0.2s;
+    -moz-appearance: textfield; /* стрелочки в Firefox */
+}
+
+/* стрелочки в Chrome/Safari/Edge */
+.info-panel input::-webkit-outer-spin-button,
+.info-panel input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* При наведении пунктир */
+.info-panel input:hover {
+    border-bottom: 1px dashed #ccc;
+}
+
+/* При фокусе просто линия */
+.info-panel input:focus {
+    outline: none;
+    border-bottom: 1px solid #d32f2f;
+}
+
+/* Поле результата остаётся неактивным */
+.info-panel input[readonly] {
+    cursor: default;
+}
