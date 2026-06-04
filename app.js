@@ -20,7 +20,7 @@ let cursorStartX = 0;
 let cursorOffsetInCursor = 0;
 
 const buttonNames = ["CD_1", "AB_2", "K_3"]
-let buttonMode = buttonNames[0]; // может быть "CD_1", "AB_2" или "K_3"
+//let buttonMode = buttonNames[0]; // может быть "CD_1", "AB_2" или "K_3"
 
 // Функция генерации делений для шкалы
 /*
@@ -30,18 +30,13 @@ function generateTicks0(rulerElement) {
     }
 }
 */
-function generateTicks(rulerElement) {
+function generateTicks(rulerElement, buttonMode) {
     rulerElement.innerHTML = ''; //очистили линейку
 
-    // выбор режима
-    let totalCycles = 1;
-    if (buttonMode == "AB_2") totalCycles = 2;
-    if (buttonMode == "K_3") totalCycles = 3;
-
-    const cycleWidth = RULER_WIDTH / totalCycles; //ширина одного цикла
+    const cycleWidth = RULER_WIDTH / buttonMode; //ширина одного цикла
     
     // проведём рисование для каждого из циклов
-    for (let c = 0; c < totalCycles; c++) {
+    for (let c = 0; c <buttonMode; c++) {
         const startX = c * cycleWidth; //начало текущего цикла
         const multiplier = Math.pow(10, c); //множитель для чисел на участке цикла
         
@@ -117,8 +112,8 @@ function createTick(parent, x, type, labelText = null) {
 }
 
 // Инициализация шкал
-generateTicks(topRuler);
-generateTicks(bottomRuler);
+generateTicks(topRuler, 1);
+generateTicks(bottomRuler, 1);
 
 // Логика движения нижней линейки
 bottomRuler.addEventListener('mousedown', (e) => {
@@ -257,7 +252,9 @@ const scaleButtons = document.querySelectorAll('.scale-btn');
 
 // Назначаем обработчик клика на каждую кнопку
 scaleButtons.forEach(button => {
-    button.addEventListener('click', () => {
+    button.addEventListener('click', (event) => {
+        let buttonMode = buttonNames[0]; // может быть "CD_1", "AB_2" или "K_3"
+        
         // 1. Удаляем класс active у текущей активной кнопки
         document.querySelector('.scale-btn.active')?.classList.remove('active');
 
@@ -265,7 +262,7 @@ scaleButtons.forEach(button => {
         button.classList.add('active');
 
         // 3. Получаем значение циклов из атрибута data-cycles
-        const cycles = button.dataset.cycles;
+        const cycles = Number(event.target.dataset.cycles)
         const activeScaleButton = document.querySelector('.scale-btn.active');
 
 
@@ -275,9 +272,9 @@ scaleButtons.forEach(button => {
                 buttonMode = buttonNames[index];
                 console.log(buttonMode);
             }
-        // Передаем значение дальше в вашу логику
-        generateTicks(topRuler);
-        generateTicks(bottomRuler);
+            
+        generateTicks(topRuler, cycles);
+        generateTicks(bottomRuler, 1);
         });
         //handleScaleChange(cycles);
     });
