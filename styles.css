@@ -152,3 +152,18 @@ body {
 .info-panel input[readonly] {
     cursor: default;
 }
+
+/* Переключение блоков формул и инструкций */
+.formula-block { display: none; }
+.formula-block.active { display: block; }
+.instruction-block { display: none; }
+.instruction-block.active { display: block; }
+
+/* Стили для степеней 2 и 3 */
+.power {
+    color: #d32f2f;
+    font-weight: bold;
+    font-size: 18px;
+    margin: 0 6px;
+    vertical-align: super;
+}

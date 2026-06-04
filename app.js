@@ -2,79 +2,60 @@ const topRuler = document.getElementById('topRuler');
 const bottomRuler = document.getElementById('bottomRuler');
 const cursor = document.getElementById('cursor');
 const rulerBox = document.getElementById('rulerBox');
+const RULER_WIDTH = 800;
 
-const valA = document.getElementById('valA');
-const valB = document.getElementById('valB');
-const valResult = document.getElementById('valResult');
-
-const RULER_WIDTH = 800; // Длина одного логарифмического цикла (от 1 до 10) в пикселях
-let bottomOffset = 0;    // Текущий сдвиг нижней линейки в пикселях
-
+let bottomOffset = 0;
 let isDraggingRuler = false;
 let rulerHasMoved = false;
 let rulerStartX = 0;
-
 let isDraggingCursor = false;
 let cursorHasMoved = false;
 let cursorStartX = 0;
 let cursorOffsetInCursor = 0;
+let currentMode = 1; // 1 = умножение, 2 = квадрат, 3 = куб
 
-const buttonNames = ["CD_1", "AB_2", "K_3"]
-//let buttonMode = buttonNames[0]; // может быть "CD_1", "AB_2" или "K_3"
+const buttonNames = ["CD_1", "AB_2", "K_3"];
 
-// Функция генерации делений для шкалы
-/*
-function generateTicks0(rulerElement) {
-    if (buttonMode === "CD_1") {
-        generateTicks(rulerElement);
-    }
-}
-*/
 function generateTicks(rulerElement, buttonMode) {
-    rulerElement.innerHTML = ''; //очистили линейку
+    rulerElement.innerHTML = '';
+    const cycleWidth = RULER_WIDTH / buttonMode;
+    const showMedium = cycleWidth >= 300;
+    const showMicro = cycleWidth >= 600;
 
-    const cycleWidth = RULER_WIDTH / buttonMode; //ширина одного цикла
-    
-    // проведём рисование для каждого из циклов
-    for (let c = 0; c <buttonMode; c++) {
-        const startX = c * cycleWidth; //начало текущего цикла
-        const multiplier = Math.pow(10, c); //множитель для чисел на участке цикла
-        
-        // Цикл по цифрам от 1 до 10, адаптированный
+    for (let c = 0; c < buttonMode; c++) {
+        const startX = c * cycleWidth;
+        const multiplier = Math.pow(10, c);
+
         for (let i = 1; i <= 10; i++) {
-            const mainX = Math.log10(i) * cycleWidth + startX; // позиция относительно начала цикла
-
-            // Генерация главной отметки с цифрой
+            const mainX = Math.log10(i) * cycleWidth + startX;
             createTick(rulerElement, mainX, 'major', i * multiplier);
 
             if (i === 10) break;
 
-            // Второстепенные деления (по типу 1.1, 1.2... или 2.1, 2.2...)
-            for (let j = 0; j < 10; j++) {
-                const subVal = i + (j * 0.1);
-                const subX = Math.log10(subVal) * cycleWidth + startX; // позиция относительно начала цикла
+            if (showMedium) {
+                for (let j = 0; j < 10; j++) {
+                    const subVal = i + (j * 0.1);
+                    const subX = Math.log10(subVal) * cycleWidth + startX;
 
-                if (j > 0) {
-                    if (i === 1 || i === 2) {
-                        createTick(rulerElement, subX, 'medium', subVal.toFixed(1) * multiplier);
-                    } else {
-                        createTick(rulerElement, subX, 'medium');
+                    if (j > 0) {
+                        if (i === 1 || i === 2) {
+                            createTick(rulerElement, subX, 'medium', subVal.toFixed(1) * multiplier);
+                        } else {
+                            createTick(rulerElement, subX, 'medium');
+                        }
                     }
-                }
-                // Для мелких участков (между 1 и 2) еще более мелкие
-                if (i === 1 || i === 2) {
-                    for (let k = 1; k < 10; k++) {
-                        const microVal = subVal + (k * 0.01);
-                        const microX = Math.log10(microVal) * cycleWidth + startX; // позиция относительно начала цикла
-                        createTick(rulerElement, microX, 'minor');
+
+                    if (showMicro && (i === 1 || i === 2)) {
+                        for (let k = 1; k < 10; k++) {
+                            const microVal = subVal + (k * 0.01);
+                            const microX = Math.log10(microVal) * cycleWidth + startX;
+                            createTick(rulerElement, microX, 'minor');
+                        }
                     }
                 }
             }
         }
     }
-
-
-    
 }
 
 function createTick(parent, x, type, labelText = null) {
@@ -82,47 +63,39 @@ function createTick(parent, x, type, labelText = null) {
     tick.className = `tick ${type}`;
     tick.style.left = `${x}px`;
     parent.appendChild(tick);
-
     if (!labelText) return;
 
-    // Главные деления (1, 2, 3...)
     if (type === 'major') {
         const label = document.createElement('div');
         label.className = 'label';
         label.style.left = `${x}px`;
         label.innerText = labelText;
         parent.appendChild(label);
-    }
-    // Средние деления (1.5, 2.5 и т.д.)
-    else if (type === 'medium' && parent === topRuler) {
+    } else if (type === 'medium' && parent === topRuler) {
         const val = parseFloat(labelText);
-
-        const labelStr = String(labelText); //домножали на multiplier, получили число, а нужна строка - приводим к ней
-        // Только для участков 1-2
+        const labelStr = String(labelText);
         if ((val === 1.5 || val === 2.5) && labelStr.includes('.5')) {
             const label = document.createElement('div');
             label.className = 'label';
             label.style.left = `${x}px`;
-            label.style.fontSize = '10px'; // Меньше шрифт
-            label.style.opacity = '0.7';    // Тусклее
+            label.style.fontSize = '10px';
+            label.style.opacity = '0.7';
             label.innerText = labelText;
             parent.appendChild(label);
         }
     }
 }
 
-// Инициализация шкал
 generateTicks(topRuler, 1);
 generateTicks(bottomRuler, 1);
 
-// Логика движения нижней линейки
 bottomRuler.addEventListener('mousedown', (e) => {
+    if (currentMode !== 1) return;
     isDraggingRuler = true;
     rulerHasMoved = false;
     rulerStartX = e.clientX - bottomOffset;
 });
 
-// Логика движения бегунка
 cursor.addEventListener('mousedown', (e) => {
     isDraggingCursor = true;
     cursorHasMoved = false;
@@ -134,30 +107,22 @@ cursor.addEventListener('mousedown', (e) => {
 });
 
 window.addEventListener('mousemove', (e) => {
-    // Перетаскивание бегунка
     if (isDraggingCursor) {
         cursorHasMoved = true;
         const rect = rulerBox.getBoundingClientRect();
         let cursorX = e.clientX - rect.left - cursorOffsetInCursor;
-
-        // Ограничение бегунка пределами контейнера
         if (cursorX < 0) cursorX = 0;
         if (cursorX > RULER_WIDTH) cursorX = RULER_WIDTH;
-
         cursor.style.left = `${cursorX}px`;
         calculateValues();
         return;
     }
 
-    // Перетаскивание нижней линейки
     if (isDraggingRuler) {
         rulerHasMoved = true;
         bottomOffset = e.clientX - rulerStartX;
-
-    // Ограничение движения, чтобы не улетала
         if (bottomOffset < -RULER_WIDTH) bottomOffset = -RULER_WIDTH;
         if (bottomOffset > RULER_WIDTH) bottomOffset = RULER_WIDTH;
-
         bottomRuler.style.transform = `translateX(${bottomOffset}px)`;
         calculateValues();
     }
@@ -168,145 +133,118 @@ window.addEventListener('mouseup', () => {
     isDraggingCursor = false;
 });
 
-/* Коммит 03.06.2026 */
-/* Поля ввода значений */
-// Функция установки позиции линейки по значению A
-function setRulerByValueA(value) {
+function setCursorByValue(value) {
     if (value < 1 || value > 10) return;
-
-    const logA = Math.log10(value);
-    bottomOffset = logA * RULER_WIDTH;
-
-    // Ограничение сдвига линейки
-    if (bottomOffset < -RULER_WIDTH) bottomOffset = -RULER_WIDTH;
-    if (bottomOffset > RULER_WIDTH) bottomOffset = RULER_WIDTH;
-
-    bottomRuler.style.transform = `translateX(${bottomOffset}px)`;
-}
-
-// Функция установки позиции курсора по значению B
-function setCursorByValueB(value) {
-    if (value < 1 || value > 10) return;
-
     const logB = Math.log10(value);
     const cursorX = (logB * RULER_WIDTH) + bottomOffset;
-
-    // Ограничение курсора пределами контейнера
     if (cursorX < 0) cursorX = 0;
     if (cursorX > RULER_WIDTH) cursorX = RULER_WIDTH;
-
     cursor.style.left = `${cursorX}px`;
 }
 
-// Обработчик ввода значения A
+function setRulerByValueA(value) {
+    if (value < 1 || value > 10) return;
+    const logA = Math.log10(value);
+    bottomOffset = logA * RULER_WIDTH;
+    if (bottomOffset < -RULER_WIDTH) bottomOffset = -RULER_WIDTH;
+    if (bottomOffset > RULER_WIDTH) bottomOffset = RULER_WIDTH;
+    bottomRuler.style.transform = `translateX(${bottomOffset}px)`;
+}
+
+// Обработчики для режима 1 (умножение)
+const valA = document.getElementById('valA');
+const valB = document.getElementById('valB');
+const valResult = document.getElementById('valResult');
+
 valA.addEventListener('input', function() {
+    if (currentMode !== 1) return;
     const value = parseFloat(this.value);
     if (isNaN(value) || value < 1 || value > 10) return;
-
     setRulerByValueA(value);
     calculateValues();
 });
 
-// Обработчик ввода значения B
 valB.addEventListener('input', function() {
+    if (currentMode !== 1) return;
     const value = parseFloat(this.value);
     if (isNaN(value) || value < 1 || value > 10) return;
-
-    setCursorByValueB(value);
+    setCursorByValue(value);
     calculateValues();
 });
 
-// Модификация функции calculateValues с обработкой инпутов
-// Математика
+// Обработчики для режима 2 (квадрат)
+const valA_sq = document.getElementById('valA_sq');
+const valResult_sq = document.getElementById('valResult_sq');
+
+valA_sq.addEventListener('input', function() {
+    if (currentMode !== 2) return;
+    const value = parseFloat(this.value);
+    if (isNaN(value) || value < 1 || value > 10) return;
+    setCursorByValue(value);
+    calculateValues();
+});
+
+// Обработчики для режима 3 (куб)
+const valA_cb = document.getElementById('valA_cb');
+const valResult_cb = document.getElementById('valResult_cb');
+
+valA_cb.addEventListener('input', function() {
+    if (currentMode !== 3) return;
+    const value = parseFloat(this.value);
+    if (isNaN(value) || value < 1 || value > 10) return;
+    setCursorByValue(value);
+    calculateValues();
+});
+
 function calculateValues() {
     const cursorX = parseFloat(cursor.style.left);
-
-    // Значение на верхней шкале под курсором
+    const bottomLog = (cursorX - bottomOffset) / RULER_WIDTH;
+    const bottomValue = Math.pow(10, bottomLog);
     const topLog = cursorX / RULER_WIDTH;
     const topValue = Math.pow(10, topLog);
 
-    // Значение на нижней шкале под курсором с учетом сдвига линейки
-    const bottomLog = (cursorX - bottomOffset) / RULER_WIDTH;
-    let bottomValue = Math.pow(10, bottomLog);
-
-    // Расчет множителей для вывода на экран
-    const aLog = -bottomOffset / RULER_WIDTH;
-    const valueA = 1 / Math.pow(10, aLog);
-
-    // Обновляем input поля только если они не в фокусе
-    if (document.activeElement !== valA) {
-        valA.value = valueA.toFixed(3);
+    if (currentMode === 1) {
+        const aLog = -bottomOffset / RULER_WIDTH;
+        const valueA = 1 / Math.pow(10, aLog);
+        if (document.activeElement !== valA) valA.value = valueA.toFixed(3);
+        if (document.activeElement !== valB) valB.value = bottomValue.toFixed(3);
+        valResult.value = topValue.toFixed(3);
+    } else if (currentMode === 2) {
+        const squareValue = bottomValue * bottomValue;
+        if (document.activeElement !== valA_sq) valA_sq.value = bottomValue.toFixed(3);
+        valResult_sq.value = squareValue.toFixed(3);
+    } else if (currentMode === 3) {
+        const cubeValue = bottomValue * bottomValue * bottomValue;
+        if (document.activeElement !== valA_cb) valA_cb.value = bottomValue.toFixed(3);
+        valResult_cb.value = cubeValue.toFixed(3);
     }
-    if (document.activeElement !== valB) {
-        valB.value = bottomValue.toFixed(3);
-    }
-    valResult.value = topValue.toFixed(3);
 }
 
-
-//buttons
-
-// Находим контейнер и все кнопки внутри него
-const scaleSelector = document.querySelector('.scale-selector');
 const scaleButtons = document.querySelectorAll('.scale-btn');
 
-// Назначаем обработчик клика на каждую кнопку
 scaleButtons.forEach(button => {
     button.addEventListener('click', (event) => {
-        let buttonMode = buttonNames[0]; // может быть "CD_1", "AB_2" или "K_3"
-        
-        // 1. Удаляем класс active у текущей активной кнопки
         document.querySelector('.scale-btn.active')?.classList.remove('active');
-
-        // 2. Добавляем класс active на кнопку, по которой кликнули
         button.classList.add('active');
 
-        // 3. Получаем значение циклов из атрибута data-cycles
-        const cycles = Number(event.target.dataset.cycles)
-        const activeScaleButton = document.querySelector('.scale-btn.active');
+        const cycles = Number(event.target.dataset.cycles);
+        currentMode = cycles;
 
+        if (currentMode !== 1) {
+            bottomOffset = 0;
+            bottomRuler.style.transform = `translateX(0px)`;
+        }
 
-        scaleButtons.forEach((button, index) => {
-            if (button === activeScaleButton) {
-            // Условие сработает только для активной кнопки
-                buttonMode = buttonNames[index];
-                console.log(buttonMode);
-            }
-            
+        document.querySelectorAll('.formula-block').forEach(b => b.classList.remove('active'));
+        document.querySelector(`.formula-block[data-mode="${currentMode}"]`)?.classList.add('active');
+        
+        document.querySelectorAll('.instruction-block').forEach(b => b.classList.remove('active'));
+        document.querySelector(`.instruction-block[data-mode="${currentMode}"]`)?.classList.add('active');
+
         generateTicks(topRuler, cycles);
         generateTicks(bottomRuler, 1);
-        });
-        //handleScaleChange(cycles);
+        calculateValues();
     });
 });
 
-// Функция, которую вызывает ваш обработчик клика
-/*
-function handleScaleChange(cyclesCount) {
-    console.log(`Выбрано циклов: ${cyclesCount}`);
-
-}
-*/
-
-// Математика старая
-/*
-function calculateValues() {
-    const cursorX = parseFloat(cursor.style.left);
-
-    // Значение на верхней шкале под курсором
-    const topLog = cursorX / RULER_WIDTH;
-    const topValue = Math.pow(10, topLog);
-    // Значение на нижней шкале под курсором с учетом сдвига линейки
-    const bottomLog = (cursorX - bottomOffset) / RULER_WIDTH;
-    let bottomValue = Math.pow(10, bottomLog);
-    // Расчет множителей для вывода на экран
-    const aLog = -bottomOffset / RULER_WIDTH;
-    const valueA = 1 / Math.pow(10, aLog);
-    valA.innerText = valueA.toFixed(3);
-    valB.innerText = bottomValue.toFixed(3);
-    valResult.innerText = topValue.toFixed(3);
-}
-*/
-
-// Первичный расчет при старте
 calculateValues();
