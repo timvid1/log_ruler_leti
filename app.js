@@ -14,6 +14,11 @@ let cursorStartX = 0;
 let cursorOffsetInCursor = 0;
 let currentMode = 1; // 1 = умножение, 2 = квадрат, 3 = куб
 
+// Универсальная функция получения X-координаты (мышь или касание)
+function getClientX(e) {
+    return e.touches ? e.touches[0].clientX : e.clientX;
+}
+
 const buttonNames = ["CD_1", "AB_2", "K_3"];
 
 function generateTicks(rulerElement, buttonMode) {
@@ -89,50 +94,87 @@ function createTick(parent, x, type, labelText = null) {
 generateTicks(topRuler, 1);
 generateTicks(bottomRuler, 1);
 
-bottomRuler.addEventListener('mousedown', (e) => {
-    if (currentMode !== 1) return;
-    isDraggingRuler = true;
-    rulerHasMoved = false;
-    rulerStartX = e.clientX - bottomOffset;
-});
+// Универсальные обработчики для мыши и касания
+function handleStart(e) {
+    const clientX = getClientX(e);
+    
+    if (e.target === bottomRuler || bottomRuler.contains(e.target)) {
+        if (currentMode !== 1) return;
+        isDraggingRuler = true;
+        rulerHasMoved = false;
+        rulerStartX = clientX - bottomOffset;
+        e.preventDefault();
+    } else if (e.target === cursor || cursor.contains(e.target)) {
+        isDraggingCursor = true;
+        cursorHasMoved = false;
+        const rect = rulerBox.getBoundingClientRect();
+        cursorStartX = clientX;
+        cursorOffsetInCursor = clientX - rect.left - parseFloat(cursor.style.left);
+        e.stopPropagation();
+        e.preventDefault();
+    }
+}
 
-cursor.addEventListener('mousedown', (e) => {
-    isDraggingCursor = true;
-    cursorHasMoved = false;
-    const rect = rulerBox.getBoundingClientRect();
-    cursorStartX = e.clientX;
-    cursorOffsetInCursor = e.clientX - rect.left - parseFloat(cursor.style.left);
-    e.stopPropagation();
-    e.preventDefault();
-});
-
-window.addEventListener('mousemove', (e) => {
+function handleMove(e) {
+    if (!isDraggingCursor && !isDraggingRuler) return;
+    
+    const clientX = getClientX(e);
+    
     if (isDraggingCursor) {
         cursorHasMoved = true;
         const rect = rulerBox.getBoundingClientRect();
-        let cursorX = e.clientX - rect.left - cursorOffsetInCursor;
+        let cursorX = clientX - rect.left - cursorOffsetInCursor;
         if (cursorX < 0) cursorX = 0;
         if (cursorX > RULER_WIDTH) cursorX = RULER_WIDTH;
         cursor.style.left = `${cursorX}px`;
         calculateValues();
-        return;
+        e.preventDefault();
     }
-
+    
     if (isDraggingRuler) {
         rulerHasMoved = true;
-        bottomOffset = e.clientX - rulerStartX;
+        bottomOffset = clientX - rulerStartX;
         if (bottomOffset < -RULER_WIDTH) bottomOffset = -RULER_WIDTH;
         if (bottomOffset > RULER_WIDTH) bottomOffset = RULER_WIDTH;
         bottomRuler.style.transform = `translateX(${bottomOffset}px)`;
         calculateValues();
+        e.preventDefault();
+    }
+}
+
+function handleEnd() {
+    isDraggingRuler = false;
+    isDraggingCursor = false;
+}
+
+window.addEventListener('keydown', (e) => {
+    if (document.activeElement.tagName === 'INPUT') return;
+    
+    const step = e.shiftKey ? 10 : 1; // Shift = быстрый шаг
+    
+    if (e.key === 'ArrowLeft') {
+        const cursorX = Math.max(0, parseFloat(cursor.style.left) - step);
+        cursor.style.left = `${cursorX}px`;
+        calculateValues();
+    } else if (e.key === 'ArrowRight') {
+        const cursorX = Math.min(RULER_WIDTH, parseFloat(cursor.style.left) + step);
+        cursor.style.left = `${cursorX}px`;
+        calculateValues();
     }
 });
 
-window.addEventListener('mouseup', () => {
-    isDraggingRuler = false;
-    isDraggingCursor = false;
-});
+// Mouse events
+bottomRuler.addEventListener('mousedown', handleStart);
+cursor.addEventListener('mousedown', handleStart);
+window.addEventListener('mousemove', handleMove);
+window.addEventListener('mouseup', handleEnd);
 
+// Touch events
+bottomRuler.addEventListener('touchstart', handleStart, { passive: false });
+cursor.addEventListener('touchstart', handleStart, { passive: false });
+window.addEventListener('touchmove', handleMove, { passive: false });
+window.addEventListener('touchend', handleEnd);
+window.addEventListener('touchcancel', handleEnd);
 function setCursorByValue(value) {
     if (value < 1 || value > 10) return;
     const logB = Math.log10(value);
@@ -413,7 +455,7 @@ function calculateValues() {
         valResult_L.value = valL.toFixed(4);
     }
     else if (currentMode === 9) { // Степень логарифма
-        const exp = (cursorX / RULER_WIDTH) * 2.3026;
+        const exp = (cursorX / RULER_WIDTH) * Math.LN10;
         const result = Math.exp(exp);
         if (document.activeElement !== valLL_exp) valLL_exp.value = exp.toFixed(2);
         valResult_LL.value = result.toFixed(3);
