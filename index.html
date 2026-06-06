@@ -15,6 +15,16 @@
         <button class="scale-btn active" data-cycles="1">C/D (1 цикл)</button>
         <button class="scale-btn" data-cycles="2">A/B (2 цикла)</button>
         <button class="scale-btn" data-cycles="3">K (3 цикла)</button>
+        <button class="scale-btn" data-mode="4">S (Синус)</button>
+        <button class="scale-btn" data-mode="5">T (Тангенс)</button>
+        <button class="scale-btn" data-mode="6">ST (Малые углы)</button>
+        <button class="scale-btn" data-mode="7">CI (Обратные)</button>
+        <button class="scale-btn" data-mode="8">L (Логарифм)</button>
+        <button class="scale-btn" data-mode="9">LL (Степень)</button>
+        <button class="scale-btn" data-mode="10">P (Косинус)</button>
+        <button class="scale-btn" data-mode="11">DF (Площадь)</button>
+        <button class="scale-btn" data-mode="12">CF (π×C)</button>
+        <button class="scale-btn" data-mode="13">CIF (π/CI)</button>
     </div>
 
     <div class="ruler-container" id="rulerBox">
@@ -35,17 +45,65 @@
         <input type="number" id="valB" value="1.000" step="0.001" min="1" max="10"> (нижн) = 
         <input type="number" id="valResult" value="1.000" step="0.001" readonly>
     </div>
-    
     <!-- Режим 2: Квадрат -->
     <div class="formula-block" data-mode="2">
         Формула: <input type="number" id="valA_sq" value="1.000" step="0.001" min="1" max="10"><span class="power">2</span> = 
         <input type="number" id="valResult_sq" value="1.000" step="0.001" readonly>
     </div>
-
     <!-- Режим 3: Куб -->
     <div class="formula-block" data-mode="3">
         Формула: <input type="number" id="valA_cb" value="1.000" step="0.001" min="1" max="10"><span class="power">3</span> = 
         <input type="number" id="valResult_cb" value="1.000" step="0.001" readonly>
+    </div>
+    <!-- Режим 4: Синус -->
+    <div class="formula-block" data-mode="4">
+        Формула: sin(<input type="number" id="valAngle_S" value="30" step="0.1" min="5.73" max="90">°) = 
+        <input type="number" id="valResult_S" value="0.500" step="0.001" readonly>
+    </div>
+    <!-- Режим 5: Тангенс -->
+    <div class="formula-block" data-mode="5">
+        Формула: tan(<input type="number" id="valAngle_T" value="30" step="0.1" min="5.73" max="45">°) = 
+        <input type="number" id="valResult_T" value="0.577" step="0.001" readonly>
+    </div>
+    <!-- Режим 6: Малые углы -->
+    <div class="formula-block" data-mode="6">
+        Формула: sin/tan(<input type="number" id="valAngle_ST" value="3" step="0.1" min="0.57" max="5.73">°) = 
+        <input type="number" id="valResult_ST" value="0.052" step="0.001" readonly>
+    </div>
+    <!-- Режим 7: Обратные числа -->
+    <div class="formula-block" data-mode="7">
+        Формула: 1 / <input type="number" id="valCI" value="2.000" step="0.001" min="1" max="10"> = 
+        <input type="number" id="valResult_CI" value="0.500" step="0.001" readonly>
+    </div>
+    <!-- Режим 8: Десятичный логарифм -->
+    <div class="formula-block" data-mode="8">
+        Формула: log10(<input type="number" id="valL_D" value="2.000" step="0.001" min="1" max="10">) = 
+        <input type="number" id="valResult_L" value="0.301" step="0.001" readonly>
+    </div>
+    <!-- Режим 9: Степень логарифма -->
+    <div class="formula-block" data-mode="9">
+        Формула: e^<input type="number" id="valLL_exp" value="1" step="0.1" min="0" max="2.3"> = 
+        <input type="number" id="valResult_LL" value="2.718" step="0.001" readonly>
+    </div>
+    <!-- Режим 10: Пифагорова шкала -->
+    <div class="formula-block" data-mode="10">
+        Формула: √(1 - <input type="number" id="valP_x" value="0.6" step="0.01" min="0" max="1">²) = 
+        <input type="number" id="valResult_P" value="0.800" step="0.001" readonly>
+    </div>
+    <!-- Режим 11: Площадь круга -->
+    <div class="formula-block" data-mode="11">
+        Формула: π×<input type="number" id="valDF_d" value="2" step="0.1" min="1" max="10">²/4 = 
+        <input type="number" id="valResult_DF" value="3.142" step="0.001" readonly>
+    </div>
+    <!-- Режим 12: Смещённая на пи шкала -->
+    <div class="formula-block" data-mode="12">
+        Формула: π × <input type="number" id="valCF_c" value="2" step="0.1" min="1" max="10"> = 
+        <input type="number" id="valResult_CF" value="6.283" step="0.001" readonly>
+    </div>
+    <!-- Режим 13: Обратная смещённой на пи шкале -->
+    <div class="formula-block" data-mode="13">
+        Формула: π / <input type="number" id="valCIF_c" value="2" step="0.1" min="1" max="10"> = 
+        <input type="number" id="valResult_CIF" value="1.571" step="0.001" readonly>
     </div>
     </div>
 
@@ -58,7 +116,6 @@
             3. <strong>Перетащите красный бегунок</strong> в место второго множителя нижней линейки.<br>
             4. На верхней линейке под красной чертой вы увидите точный результат умножения!
         </div>
-    
         <!-- Инструкция для квадрата -->
         <div class="instruction-block" data-mode="2">
             <strong>Как возвести в квадрат:</strong><br>
@@ -66,7 +123,6 @@
             2. Введите число в поле или <strong>перетащите красный бегунок</strong> на нужное число на нижней линейке.<br>
             3. На верхней линейке (шкала A, 2 цикла) под красной чертой — квадрат этого числа!
         </div>
-    
         <!-- Инструкция для куба -->
         <div class="instruction-block" data-mode="3">
             <strong>Как возвести в куб:</strong><br>
@@ -74,6 +130,64 @@
             2. Введите число в поле или <strong>перетащите красный бегунок</strong> на нужное число на нижней линейке.<br>
             3. На верхней линейке (шкала K, 3 цикла) под красной чертой — куб этого числа!
         </div>
+        <!-- Инструкция для синуса -->
+        <div class="instruction-block" data-mode="4">
+            <strong>Как найти синус (S):</strong><br>
+            1. Введите угол (от 5.73° до 90°) или перетащите бегунок на нижней шкале S.<br>
+            2. На верхней шкале D под чертой вы увидите значение синуса (от 0.1 до 1.0).
+        </div>
+        <!-- Инструкция для тангенса -->
+        <div class="instruction-block" data-mode="5">
+        <strong>Как найти тангенс (T):</strong><br>
+            1. Введите угол (от 5.73° до 45°) или перетащите бегунок на нижней шкале T.<br>
+            2. На верхней шкале D под чертой вы увидите значение тангенса (от 0.1 до 1.0).
+        </div>
+        <!-- Инструкция для тригонометрических функций малых углов -->
+        <div class="instruction-block" data-mode="6">
+            <strong>Малые углы (ST):</strong><br>
+            1. Для углов от 0.57° до 5.73° синус и тангенс практически равны.<br>
+            2. Введите угол или перетащите бегунок на нижней шкале ST.<br>
+            3. На верхней шкале D под чертой вы увидите значение (от 0.01 до 0.1).
+        </div>
+        <!-- Инструкция для обратных чисел -->
+        <div class="instruction-block" data-mode="7">
+            <strong>Обратные числа (CI):</strong><br>
+            1. Шкала CI (нижняя) идет в обратном направлении (от 10 до 1).<br>
+            2. Введите число или перетащите бегунок на нижней шкале CI.<br>
+            3. На верхней шкале D под чертой вы увидите результат деления 1 на это число.
+        </div>
+        <!-- Инструкция для десятичных логарифмов -->
+        <div class="instruction-block" data-mode="8">
+            <strong>Десятичные логарифмы (L):</strong><br>
+            1. Верхняя шкала L — линейная (от 0.0 до 1.0). Нижняя D — логарифмическая.<br>
+            2. Введите число (1-10) или перетащите бегунок на нижней шкале D.<br>
+            3. На верхней шкале L под чертой вы увидите мантиссу логарифма.
+        </div>
+        <div class="instruction-block" data-mode="9">
+            <strong>Возведение в степень (LL):</strong><br>
+            1. Введите показатель степени (0-2.3) или перетащите бегунок на нижней шкале D.<br>
+            2. На верхней шкале LL под чертой — результат e^x (от 1 до 10).
+        </div>
+    <div class="instruction-block" data-mode="10">
+        <strong>Пифагорова шкала (P):</strong><br>
+        1. Введите значение x (0-1) или перетащите бегунок на нижней шкале D.<br>
+        2. На верхней шкале P под чертой — √(1-x²), то есть косинус угла.
+    </div>
+    <div class="instruction-block" data-mode="11">
+        <strong>Площадь круга (DF):</strong><br>
+        1. Введите диаметр (1-10) или перетащите бегунок на нижней шкале D.<br>
+        2. На верхней шкале DF под чертой — площадь круга π×d²/4.
+    </div>
+    <div class="instruction-block" data-mode="12">
+        <strong>Сложенная шкала C (CF):</strong><br>
+        1. Введите число (1-10) или перетащите бегунок на нижней шкале C.<br>
+        2. На верхней шкале CF под чертой — результат умножения на π.
+    </div>
+    <div class="instruction-block" data-mode="13">
+        <strong>Обратная сложенная (CIF):</strong><br>
+        1. Введите число (1-10) или перетащите бегунок на нижней шкале CI.<br>
+        2. На верхней шкале CIF под чертой — результат π/x.
+    </div>
     </div>
 
     <script src="app.js"></script>
