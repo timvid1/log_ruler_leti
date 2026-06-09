@@ -99,7 +99,7 @@ function handleStart(e) {
     const clientX = getClientX(e);
     
     if (e.target === bottomRuler || bottomRuler.contains(e.target)) {
-        if (currentMode !== 1) return;
+        if (currentMode !== 1 && currentMode !== 14) return;
         isDraggingRuler = true;
         rulerHasMoved = false;
         rulerStartX = clientX - bottomOffset;
@@ -368,6 +368,51 @@ function drawCIF_Scale(element) {
     });
 }
 
+function drawFact_Scale(element) {
+    element.innerHTML = '';
+    
+    // Вспомогательная функция факториала (на случай, если gammaFactorial не видна глобально)
+    function getFact(x) {
+        if (x <= 1) return 1;
+        const pi = Math.PI;
+        const e = Math.E;
+        const base = Math.sqrt(pi) * Math.pow(x / e, x);
+        return base * Math.pow(8 * x * x * x + 4 * x * x + x + 1 / 30, 1 / 6);
+    }
+    const maxLog = Math.log10(getFact(7));
+
+    // 1. Рисуем главные деления (1!, 2!, 3!, 4!, 5!, 6!, 7!)
+    for (let i = 1; i <= 7; i++) {
+        const x = RULER_WIDTH * (Math.log10(getFact(i)) / maxLog);
+        createTick(element, x, 'major', i + '!');
+    }
+
+    // 2. Рисуем микроделения между ними
+    for (let i = 1; i < 7; i++) {
+        // Задаем количество шагов: от 1 до 2 — очень свободно (сделаем 10 делений), 
+        // дальше тоже по 10 делений в каждом интервале
+        let substeps = 10; 
+        
+        for (let k = 1; k < substeps; k++) {
+            const val = i + (k / substeps); 
+            const x = RULER_WIDTH * (Math.log10(getFact(val)) / maxLog);
+
+            // Каждое 5-е деление (например, 1.5, 2.5) делаем средним
+            if (k === 5) {
+                // Подписываем только 1.5 и 2.5, чтобы не перегружать шкалу
+                if (i === 1 || i === 2) {
+                    createTick(element, x, 'medium', val.toFixed(1));
+                } else {
+                    createTick(element, x, 'medium');
+                }
+            } else {
+                createTick(element, x, 'minor'); // Остальные — мелкие риски
+            }
+        }
+    }
+}
+
+
 function renderSpecialScales(mode) {
     bottomOffset = 0;
     bottomRuler.style.transform = `translateX(0px)`;
@@ -386,6 +431,8 @@ function renderSpecialScales(mode) {
         drawCF_Scale(topRuler);
     } else if (mode === 13) {
         drawCIF_Scale(topRuler);
+    } else if (mode === 14) {
+        drawFact_Scale(topRuler);
     } else {
         generateTicks(topRuler, 1);
     }
@@ -397,8 +444,11 @@ function renderSpecialScales(mode) {
     else if (mode === 7 || mode === 13) drawCI_Scale(bottomRuler);
     else if (mode === 8 || mode === 9 || mode === 10 || mode === 11 || mode === 12) {
         generateTicks(bottomRuler, 1);
-    }
+    } else if (mode === 14) drawFact_Scale(bottomRuler);
 }
+
+
+
 
 function calculateValues() {
     const cursorX = parseFloat(cursor.style.left);
@@ -479,6 +529,52 @@ function calculateValues() {
         const result = Math.PI / c;
         if (document.activeElement !== valCIF_c) valCIF_c.value = c.toFixed(3);
         valResult_CIF.value = result.toFixed(3);
+    } else if (currentMode === 14) {
+        function findInvFactorial(targetLog) {
+            if (targetLog <= 0) return 1;
+            function f(x) {
+                if (x <= 1) return 1;
+                return Math.sqrt(Math.PI) * Math.pow(x / Math.E, x) * Math.pow(8 * x * x * x + 4 * x * x + x + 1 / 30, 1 / 6);
+            }
+            let low = 1, high = 7, mid = 4;
+            for (let iter = 0; iter < 20; iter++) {
+                mid = (low + high) / 2;
+                if (Math.log10(f(mid)) > targetLog) high = mid;
+                else low = mid;
+            }
+            return mid;
+        }
+        function f7(x) { return Math.sqrt(Math.PI) * Math.pow(x / Math.E, x) * Math.pow(8 * x * x * x + 4 * x * x + x + 1 / 30, 1 / 6); }
+        const MAX_FACT_LOG = Math.log10(f7(7));
+        
+        // 1. Значение N на нижней шкале (напротив начала верхней шкалы)
+        const aLog = (-bottomOffset / RULER_WIDTH) * MAX_FACT_LOG;
+        const valueA = findInvFactorial(aLog);
+
+        // 2. Значение K на нижней шкале под курсором
+        const bLog = ((cursorX - bottomOffset) / RULER_WIDTH) * MAX_FACT_LOG;
+        const valueB = findInvFactorial(bLog);
+
+        // 3. Результат M на верхней шкале под курсором
+        const mLog = (cursorX / RULER_WIDTH) * MAX_FACT_LOG;
+        const valueM = findInvFactorial(mLog);
+
+        // Выводим результаты в инпуты
+        const inputA = document.getElementById('valFactA');
+        if (inputA && document.activeElement !== inputA) {
+            inputA.value = valueA.toFixed(3);
+        }
+
+        const inputB = document.getElementById('valFactB');
+        if (inputB && document.activeElement !== inputB) {
+            inputB.value = valueB.toFixed(3);
+        }
+
+        const inputResult = document.getElementById('valResult_Fact');
+        if (inputResult) {
+            inputResult.value = valueM.toFixed(4);
+        }
+        return;
     }
 }
 
@@ -587,6 +683,35 @@ valCIF_c?.addEventListener('input', function() {
     calculateValues();
 });
 
+// Обработчики ручного ввода в инпуты формулы факториалов
+const valFactA = document.getElementById('valFactA');
+valFactA?.addEventListener('input', function() {
+    if (currentMode !== 14) return;
+    const n = parseFloat(this.value);
+    if (isNaN(n) || n < 1 || n > 7) return;
+
+    bottomOffset = (Math.log10(getFact(n)) / maxLog) * RULER_WIDTH;
+    if (bottomOffset < -RULER_WIDTH) bottomOffset = -RULER_WIDTH;
+    if (bottomOffset > RULER_WIDTH) bottomOffset = RULER_WIDTH;
+    
+    bottomRuler.style.transform = `translateX(${bottomOffset}px)`;
+    calculateValues();
+});
+
+const valFactB = document.getElementById('valFactB');
+valFactB?.addEventListener('input', function() {
+    if (currentMode !== 14) return;
+    const k = parseFloat(this.value);
+    if (isNaN(k) || k < 1 || k > 7) return;
+
+    let cursorX = ((Math.log10(getFact(k)) / maxLog) * RULER_WIDTH) + bottomOffset;
+    if (cursorX < 0) cursorX = 0;
+    if (cursorX > RULER_WIDTH) cursorX = RULER_WIDTH;
+    
+    cursor.style.left = `${cursorX}px`;
+    calculateValues();
+});
+
 const scaleButtons = document.querySelectorAll('.scale-btn');
 
 scaleButtons.forEach(button => {
@@ -600,7 +725,7 @@ scaleButtons.forEach(button => {
         
         currentMode = mode;
 
-        if (currentMode !== 1) {
+        if (currentMode !== 1 && currentMode !== 14) {
             bottomOffset = 0;
             bottomRuler.style.transform = `translateX(0px)`;
         }
