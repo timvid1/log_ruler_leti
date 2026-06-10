@@ -238,6 +238,8 @@ valA_cb.addEventListener('input', function() {
     calculateValues();
 });
 
+
+
 // 06.06.2026
 // --- НОВЫЕ ФУНКЦИИ ОТРИСОВКИ СПЕЦИАЛЬНЫХ ШКАЛ ---
 // --- РЕЖИМЫ 4 - 13 ---
@@ -368,50 +370,41 @@ function drawCIF_Scale(element) {
     });
 }
 
+function getFact(x) {
+       if (x <= 0) return 1;
+       return Math.sqrt(Math.PI * (2 * x + 1/3)) * Math.pow(x / Math.E, x);
+    }
+const MAX_FACT_LOG = Math.log10(getFact(7));
+        
 function drawFact_Scale(element) {
     element.innerHTML = '';
     
-    // Вспомогательная функция факториала (на случай, если gammaFactorial не видна глобально)
-    function getFact(x) {
-        if (x <= 1) return 1;
-        const pi = Math.PI;
-        const e = Math.E;
-        const base = Math.sqrt(pi) * Math.pow(x / e, x);
-        return base * Math.pow(8 * x * x * x + 4 * x * x + x + 1 / 30, 1 / 6);
-    }
-    const maxLog = Math.log10(getFact(7));
-
-    // 1. Рисуем главные деления (1!, 2!, 3!, 4!, 5!, 6!, 7!)
+    // (1!, 2!, 3!, 4!, 5!, 6!, 7!) деления
     for (let i = 1; i <= 7; i++) {
-        const x = RULER_WIDTH * (Math.log10(getFact(i)) / maxLog);
+        const x = RULER_WIDTH * (Math.log10(getFact(i)) / MAX_FACT_LOG);
         createTick(element, x, 'major', i + '!');
     }
 
-    // 2. Рисуем микроделения между ними
+    // мелкие деления
     for (let i = 1; i < 7; i++) {
-        // Задаем количество шагов: от 1 до 2 — очень свободно (сделаем 10 делений), 
-        // дальше тоже по 10 делений в каждом интервале
         let substeps = 10; 
         
         for (let k = 1; k < substeps; k++) {
             const val = i + (k / substeps); 
-            const x = RULER_WIDTH * (Math.log10(getFact(val)) / maxLog);
+            const x = RULER_WIDTH * (Math.log10(getFact(val)) / MAX_FACT_LOG);
 
-            // Каждое 5-е деление (например, 1.5, 2.5) делаем средним
             if (k === 5) {
-                // Подписываем только 1.5 и 2.5, чтобы не перегружать шкалу
                 if (i === 1 || i === 2) {
                     createTick(element, x, 'medium', val.toFixed(1));
                 } else {
                     createTick(element, x, 'medium');
                 }
             } else {
-                createTick(element, x, 'minor'); // Остальные — мелкие риски
+                createTick(element, x, 'minor'); 
             }
         }
     }
 }
-
 
 function renderSpecialScales(mode) {
     bottomOffset = 0;
@@ -530,51 +523,43 @@ function calculateValues() {
         if (document.activeElement !== valCIF_c) valCIF_c.value = c.toFixed(3);
         valResult_CIF.value = result.toFixed(3);
     } else if (currentMode === 14) {
-        function findInvFactorial(targetLog) {
-            if (targetLog <= 0) return 1;
-            function f(x) {
-                if (x <= 1) return 1;
-                return Math.sqrt(Math.PI) * Math.pow(x / Math.E, x) * Math.pow(8 * x * x * x + 4 * x * x + x + 1 / 30, 1 / 6);
-            }
-            let low = 1, high = 7, mid = 4;
-            for (let iter = 0; iter < 20; iter++) {
-                mid = (low + high) / 2;
-                if (Math.log10(f(mid)) > targetLog) high = mid;
-                else low = mid;
-            }
-            return mid;
+    function findInvFactorial(targetLog) {
+        if (targetLog <= 0) return 1;
+
+        let low = 0.01, high = 7, mid = 4;
+        for (let iter = 0; iter < 30; iter++) {
+            mid = (low + high) / 2;
+            if (Math.log10(getFact(mid)) > targetLog) high = mid;
+            else low = mid;
         }
-        function f7(x) { return Math.sqrt(Math.PI) * Math.pow(x / Math.E, x) * Math.pow(8 * x * x * x + 4 * x * x + x + 1 / 30, 1 / 6); }
-        const MAX_FACT_LOG = Math.log10(f7(7));
-        
-        // 1. Значение N на нижней шкале (напротив начала верхней шкалы)
-        const aLog = (-bottomOffset / RULER_WIDTH) * MAX_FACT_LOG;
-        const valueA = findInvFactorial(aLog);
+        return (low + high) / 2;
+    }
+    
+    // Исправлено: убран лишний минус и пробелы в переменных (valueA, RULER_WIDTH, &&)
+    const aLog = (bottomOffset / RULER_WIDTH) * MAX_FACT_LOG;
+    const valueA = findInvFactorial(aLog);
 
-        // 2. Значение K на нижней шкале под курсором
-        const bLog = ((cursorX - bottomOffset) / RULER_WIDTH) * MAX_FACT_LOG;
-        const valueB = findInvFactorial(bLog);
+    const bLog = ((cursorX - bottomOffset) / RULER_WIDTH) * MAX_FACT_LOG;
+    const valueB = findInvFactorial(bLog);
 
-        // 3. Результат M на верхней шкале под курсором
-        const mLog = (cursorX / RULER_WIDTH) * MAX_FACT_LOG;
-        const valueM = findInvFactorial(mLog);
+    const mLog = (cursorX / RULER_WIDTH) * MAX_FACT_LOG;
+    const valueM = findInvFactorial(mLog);
 
-        // Выводим результаты в инпуты
-        const inputA = document.getElementById('valFactA');
-        if (inputA && document.activeElement !== inputA) {
-            inputA.value = valueA.toFixed(3);
-        }
+    const inputA = document.getElementById('valFactA');
+    if (inputA && document.activeElement !== inputA) {
+        inputA.value = valueA.toFixed(3);
+    }
 
-        const inputB = document.getElementById('valFactB');
-        if (inputB && document.activeElement !== inputB) {
-            inputB.value = valueB.toFixed(3);
-        }
+    const inputB = document.getElementById('valFactB');
+    if (inputB && document.activeElement !== inputB) {
+        inputB.value = valueB.toFixed(3);
+    }
 
-        const inputResult = document.getElementById('valResult_Fact');
-        if (inputResult) {
-            inputResult.value = valueM.toFixed(4);
-        }
-        return;
+    const inputResult = document.getElementById('valResult_Fact');
+    if (inputResult) {
+        inputResult.value = valueM.toFixed(4);
+    }
+    return;
     }
 }
 
@@ -690,7 +675,7 @@ valFactA?.addEventListener('input', function() {
     const n = parseFloat(this.value);
     if (isNaN(n) || n < 1 || n > 7) return;
 
-    bottomOffset = (Math.log10(getFact(n)) / maxLog) * RULER_WIDTH;
+    bottomOffset = (Math.log10(getFact(n)) / MAX_FACT_LOG) * RULER_WIDTH;
     if (bottomOffset < -RULER_WIDTH) bottomOffset = -RULER_WIDTH;
     if (bottomOffset > RULER_WIDTH) bottomOffset = RULER_WIDTH;
     
@@ -704,7 +689,7 @@ valFactB?.addEventListener('input', function() {
     const k = parseFloat(this.value);
     if (isNaN(k) || k < 1 || k > 7) return;
 
-    let cursorX = ((Math.log10(getFact(k)) / maxLog) * RULER_WIDTH) + bottomOffset;
+    let cursorX = ((Math.log10(getFact(k)) / MAX_FACT_LOG) * RULER_WIDTH) + bottomOffset;
     if (cursorX < 0) cursorX = 0;
     if (cursorX > RULER_WIDTH) cursorX = RULER_WIDTH;
     
