@@ -507,7 +507,7 @@ function calculateValues() {
     else if (currentMode === 7) { // Обратные числа
         const valCI_val = Math.pow(10, 1 - (cursorX / RULER_WIDTH));
         const valD_CI = Math.pow(10, (cursorX / RULER_WIDTH) - 1);
-        const nValue = Math.pow(10, bottomOffset / RULER_WIDTH);
+        const nValue = Math.pow(10, (bottomOffset / RULER_WIDTH));
     
         if (document.activeElement !== valCI) valCI.value = valCI_val.toFixed(3);
         if (valN_CI && document.activeElement !== valN_CI) valN_CI.value = nValue.toFixed(3);
@@ -537,7 +537,7 @@ function calculateValues() {
     } else if (currentMode === 12) { // Смещённая (CF)
         const c = Math.pow(10, cursorX / RULER_WIDTH);
         const result = Math.PI * c;
-        const nValue = Math.pow(10, bottomOffset / RULER_WIDTH);
+        const nValue = Math.pow(10, (bottomOffset / RULER_WIDTH));
     
         if (document.activeElement !== valCF_c) valCF_c.value = c.toFixed(3);
         if (valN_CF && document.activeElement !== valN_CF) valN_CF.value = nValue.toFixed(3);
@@ -545,7 +545,7 @@ function calculateValues() {
     } else if (currentMode === 13) { // Обратная смещённая (CIF)
         const c = Math.pow(10, 1 - (cursorX / RULER_WIDTH));
         const result = Math.PI / c;
-        const nValue = Math.pow(10, (-bottomOffset / RULER_WIDTH));
+        const nValue = Math.pow(10, (bottomOffset / RULER_WIDTH));
     
         if (document.activeElement !== valCIF_c) valCIF_c.value = c.toFixed(3);
         if (valN_CIF && document.activeElement !== valN_CIF) valN_CIF.value = nValue.toFixed(3);
@@ -634,7 +634,7 @@ valN_CI?.addEventListener('input', function() {
     if (currentMode !== 7) return;
     const value = parseFloat(this.value);
     if (isNaN(value) || value < 1 || value > 10) return;
-    bottomOffset = -Math.log10(value) * RULER_WIDTH;
+    bottomOffset = Math.log10(value) * RULER_WIDTH;
     if (bottomOffset < -RULER_WIDTH) bottomOffset = -RULER_WIDTH;
     if (bottomOffset > RULER_WIDTH) bottomOffset = RULER_WIDTH;
     bottomRuler.style.transform = `translateX(${bottomOffset}px)`;
@@ -698,7 +698,7 @@ valN_CF?.addEventListener('input', function() {
     if (currentMode !== 12) return;
     const value = parseFloat(this.value);
     if (isNaN(value) || value < 1 || value > 10) return;
-    bottomOffset = -Math.log10(value) * RULER_WIDTH;
+    bottomOffset = Math.log10(value) * RULER_WIDTH;
     if (bottomOffset < -RULER_WIDTH) bottomOffset = -RULER_WIDTH;
     if (bottomOffset > RULER_WIDTH) bottomOffset = RULER_WIDTH;
     bottomRuler.style.transform = `translateX(${bottomOffset}px)`;
@@ -720,7 +720,7 @@ valN_CIF?.addEventListener('input', function() {
     if (currentMode !== 13) return;
     const value = parseFloat(this.value);
     if (isNaN(value) || value < 1 || value > 10) return;
-    bottomOffset = -Math.log10(value) * RULER_WIDTH;
+    bottomOffset = Math.log10(value) * RULER_WIDTH;
     if (bottomOffset < -RULER_WIDTH) bottomOffset = -RULER_WIDTH;
     if (bottomOffset > RULER_WIDTH) bottomOffset = RULER_WIDTH;
     bottomRuler.style.transform = `translateX(${bottomOffset}px)`;
