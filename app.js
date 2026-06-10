@@ -96,7 +96,9 @@ generateTicks(bottomRuler, 1);
 function handleStart(e) {
     const clientX = getClientX(e);
     if (e.target === bottomRuler || bottomRuler.contains(e.target)) {
-        if (currentMode !== 1 && currentMode !== 2 && currentMode !== 3 && currentMode !== 14) return;
+        
+        const modesWithRulerDrag = [1, 2, 3, 7, 12, 13, 14];
+        if (!modesWithRulerDrag.includes(currentMode)) return;
         isDraggingRuler = true;
         rulerHasMoved = false;
         rulerStartX = clientX - bottomOffset;
@@ -505,8 +507,11 @@ function calculateValues() {
     else if (currentMode === 7) { // Обратные числа
         const valCI_val = Math.pow(10, 1 - (cursorX / RULER_WIDTH));
         const valD_CI = Math.pow(10, (cursorX / RULER_WIDTH) - 1);
+        const nValue = Math.pow(10, bottomOffset / RULER_WIDTH);
+    
         if (document.activeElement !== valCI) valCI.value = valCI_val.toFixed(3);
-        valResult_CI.value = valD_CI.toFixed(4);
+        if (valN_CI && document.activeElement !== valN_CI) valN_CI.value = nValue.toFixed(3);
+        valResult_CI.value = (nValue * valD_CI).toFixed(4);
     }
     else if (currentMode === 8) { // Логарифм
         const valD_L = Math.pow(10, cursorX / RULER_WIDTH);
@@ -529,16 +534,22 @@ function calculateValues() {
         const result = Math.PI * d * d / 4;
         if (document.activeElement !== valDF_d) valDF_d.value = d.toFixed(3);
         valResult_DF.value = result.toFixed(3);
-    } else if (currentMode === 12) { // Смещённая
+    } else if (currentMode === 12) { // Смещённая (CF)
         const c = Math.pow(10, cursorX / RULER_WIDTH);
         const result = Math.PI * c;
+        const nValue = Math.pow(10, bottomOffset / RULER_WIDTH);
+    
         if (document.activeElement !== valCF_c) valCF_c.value = c.toFixed(3);
-        valResult_CF.value = result.toFixed(3);
-    } else if (currentMode === 13) { // Обратная смещённая
+        if (valN_CF && document.activeElement !== valN_CF) valN_CF.value = nValue.toFixed(3);
+        valResult_CF.value = (nValue * result).toFixed(3); // N*π*C
+    } else if (currentMode === 13) { // Обратная смещённая (CIF)
         const c = Math.pow(10, 1 - (cursorX / RULER_WIDTH));
         const result = Math.PI / c;
+        const nValue = Math.pow(10, (-bottomOffset / RULER_WIDTH));
+    
         if (document.activeElement !== valCIF_c) valCIF_c.value = c.toFixed(3);
-        valResult_CIF.value = result.toFixed(3);
+        if (valN_CIF && document.activeElement !== valN_CIF) valN_CIF.value = nValue.toFixed(3);
+        valResult_CIF.value = (nValue * result).toFixed(3); // N*π/C
     } else if (currentMode === 14) {
     function findInvFactorial(targetLog) {
         if (targetLog <= 0) return 1;
@@ -618,6 +629,17 @@ valAngle_ST?.addEventListener('input', function() {
 });
 
 const valCI = document.getElementById('valCI');
+const valN_CI = document.getElementById('valN_CI');
+valN_CI?.addEventListener('input', function() {
+    if (currentMode !== 7) return;
+    const value = parseFloat(this.value);
+    if (isNaN(value) || value < 1 || value > 10) return;
+    bottomOffset = -Math.log10(value) * RULER_WIDTH;
+    if (bottomOffset < -RULER_WIDTH) bottomOffset = -RULER_WIDTH;
+    if (bottomOffset > RULER_WIDTH) bottomOffset = RULER_WIDTH;
+    bottomRuler.style.transform = `translateX(${bottomOffset}px)`;
+    calculateValues();
+});
 valCI?.addEventListener('input', function() {
     if (currentMode !== 7) return;
     const value = parseFloat(this.value);
@@ -670,7 +692,18 @@ valDF_d?.addEventListener('input', function() {
 });
 
 const valCF_c = document.getElementById('valCF_c');
+const valN_CF = document.getElementById('valN_CF');
 const valResult_CF = document.getElementById('valResult_CF');
+valN_CF?.addEventListener('input', function() {
+    if (currentMode !== 12) return;
+    const value = parseFloat(this.value);
+    if (isNaN(value) || value < 1 || value > 10) return;
+    bottomOffset = -Math.log10(value) * RULER_WIDTH;
+    if (bottomOffset < -RULER_WIDTH) bottomOffset = -RULER_WIDTH;
+    if (bottomOffset > RULER_WIDTH) bottomOffset = RULER_WIDTH;
+    bottomRuler.style.transform = `translateX(${bottomOffset}px)`;
+    calculateValues();
+});
 valCF_c?.addEventListener('input', function() {
     if (currentMode !== 12) return;
     const c = parseFloat(this.value);
@@ -681,7 +714,18 @@ valCF_c?.addEventListener('input', function() {
 });
 
 const valCIF_c = document.getElementById('valCIF_c');
+const valN_CIF = document.getElementById('valN_CIF');
 const valResult_CIF = document.getElementById('valResult_CIF');
+valN_CIF?.addEventListener('input', function() {
+    if (currentMode !== 13) return;
+    const value = parseFloat(this.value);
+    if (isNaN(value) || value < 1 || value > 10) return;
+    bottomOffset = -Math.log10(value) * RULER_WIDTH;
+    if (bottomOffset < -RULER_WIDTH) bottomOffset = -RULER_WIDTH;
+    if (bottomOffset > RULER_WIDTH) bottomOffset = RULER_WIDTH;
+    bottomRuler.style.transform = `translateX(${bottomOffset}px)`;
+    calculateValues();
+});
 valCIF_c?.addEventListener('input', function() {
     if (currentMode !== 13) return;
     const c = parseFloat(this.value);
