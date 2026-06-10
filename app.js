@@ -19,8 +19,6 @@ function getClientX(e) {
     return e.touches ? e.touches[0].clientX : e.clientX;
 }
 
-const buttonNames = ["CD_1", "AB_2", "K_3"];
-
 function generateTicks(rulerElement, buttonMode) {
     rulerElement.innerHTML = '';
     const cycleWidth = RULER_WIDTH / buttonMode;
@@ -97,9 +95,8 @@ generateTicks(bottomRuler, 1);
 // Универсальные обработчики для мыши и касания
 function handleStart(e) {
     const clientX = getClientX(e);
-    
     if (e.target === bottomRuler || bottomRuler.contains(e.target)) {
-        if (currentMode !== 1 && currentMode !== 14) return;
+        if (currentMode !== 1 && currentMode !== 2 && currentMode !== 3 && currentMode !== 14) return;
         isDraggingRuler = true;
         rulerHasMoved = false;
         rulerStartX = clientX - bottomOffset;
@@ -217,7 +214,17 @@ valB.addEventListener('input', function() {
 // Обработчики для режима 2 (квадрат)
 const valA_sq = document.getElementById('valA_sq');
 const valResult_sq = document.getElementById('valResult_sq');
-
+const valN_sq = document.getElementById('valN_sq');
+valN_sq?.addEventListener('input', function() {
+    if (currentMode !== 2) return;
+    const value = parseFloat(this.value);
+    if (isNaN(value) || value < 1 || value > 100) return;
+    bottomOffset = (Math.log10(value) / 2) * RULER_WIDTH;
+    if (bottomOffset < -RULER_WIDTH) bottomOffset = -RULER_WIDTH;
+    if (bottomOffset > RULER_WIDTH) bottomOffset = RULER_WIDTH;
+    bottomRuler.style.transform = `translateX(${bottomOffset}px)`;
+    calculateValues();
+});
 valA_sq.addEventListener('input', function() {
     if (currentMode !== 2) return;
     const value = parseFloat(this.value);
@@ -228,8 +235,19 @@ valA_sq.addEventListener('input', function() {
 
 // Обработчики для режима 3 (куб)
 const valA_cb = document.getElementById('valA_cb');
+const valN_cb = document.getElementById('valN_cb');
 const valResult_cb = document.getElementById('valResult_cb');
-
+valN_cb?.addEventListener('input', function() {
+    if (currentMode !== 3) return;
+    const value = parseFloat(this.value);
+    if (isNaN(value) || value < 1 || value > 1000) return;
+    // Для шкалы K (3 цикла): bottomOffset = (log10(N) / 3) × RULER_WIDTH
+    bottomOffset = (Math.log10(value) / 3) * RULER_WIDTH;
+    if (bottomOffset < -RULER_WIDTH) bottomOffset = -RULER_WIDTH;
+    if (bottomOffset > RULER_WIDTH) bottomOffset = RULER_WIDTH;
+    bottomRuler.style.transform = `translateX(${bottomOffset}px)`;
+    calculateValues();
+});
 valA_cb.addEventListener('input', function() {
     if (currentMode !== 3) return;
     const value = parseFloat(this.value);
@@ -238,10 +256,6 @@ valA_cb.addEventListener('input', function() {
     calculateValues();
 });
 
-
-
-// 06.06.2026
-// --- НОВЫЕ ФУНКЦИИ ОТРИСОВКИ СПЕЦИАЛЬНЫХ ШКАЛ ---
 // --- РЕЖИМЫ 4 - 13 ---
 function drawS_Scale(element) {
     element.innerHTML = '';
@@ -308,7 +322,6 @@ function drawL_Scale(element) {
     }
 }
 
-// --- НОВЫЕ ФУНКЦИИ ОТРИСОВКИ ---
 function drawLL_Scale(element) {
     element.innerHTML = '';
     // LL шкала: от e^0=1 до e^2.302≈10
@@ -374,6 +387,7 @@ function getFact(x) {
        if (x <= 0) return 1;
        return Math.sqrt(Math.PI * (2 * x + 1/3)) * Math.pow(x / Math.E, x);
     }
+const MAX_FACT_N = 7;
 const MAX_FACT_LOG = Math.log10(getFact(7));
         
 function drawFact_Scale(element) {
@@ -440,11 +454,8 @@ function renderSpecialScales(mode) {
     } else if (mode === 14) drawFact_Scale(bottomRuler);
 }
 
-
-
-
 function calculateValues() {
-    const cursorX = parseFloat(cursor.style.left);
+    let cursorX = parseFloat(cursor.style.left);
     const bottomLog = (cursorX - bottomOffset) / RULER_WIDTH;
     const bottomValue = Math.pow(10, bottomLog);
     const topLog = cursorX / RULER_WIDTH;
@@ -457,17 +468,23 @@ function calculateValues() {
         if (document.activeElement !== valB) valB.value = bottomValue.toFixed(3);
         valResult.value = topValue.toFixed(3);
     } else if (currentMode === 2) {
-        const squareValue = bottomValue * bottomValue;
-        if (document.activeElement !== valA_sq) valA_sq.value = bottomValue.toFixed(3);
-        valResult_sq.value = squareValue.toFixed(3);
-    } else if (currentMode === 3) {
-        const cubeValue = bottomValue * bottomValue * bottomValue;
-        if (document.activeElement !== valA_cb) valA_cb.value = bottomValue.toFixed(3);
-        valResult_cb.value = cubeValue.toFixed(3);
-    }
+        const bottomValueD = Math.pow(10, (cursorX - bottomOffset) / RULER_WIDTH);
+        const squareValue = bottomValueD * bottomValueD;
 
-    // --- НОВЫЕ РЕЖИМЫ С КОММИТА 06.06 ---
-    else if (currentMode === 4) { // Синус
+        const nValue = Math.pow(10, (bottomOffset / RULER_WIDTH) * 2);
+
+        if (document.activeElement !== valA_sq) valA_sq.value = bottomValueD.toFixed(3);
+        if (valN_sq && document.activeElement !== valN_sq) valN_sq.value = nValue.toFixed(3);
+        valResult_sq.value = (nValue * squareValue).toFixed(3);
+    } else if (currentMode === 3) {
+        const bottomValueD = Math.pow(10, (cursorX - bottomOffset) / RULER_WIDTH);
+        const cubeValue = bottomValueD * bottomValueD * bottomValueD;
+        const nValue = Math.pow(10, (bottomOffset / RULER_WIDTH) * 3);
+
+        if (document.activeElement !== valA_cb) valA_cb.value = bottomValueD.toFixed(3);
+        if (valN_cb && document.activeElement !== valN_cb) valN_cb.value = nValue.toFixed(3);
+        valResult_cb.value = (nValue * cubeValue).toFixed(3);
+    } else if (currentMode === 4) { // Синус
         const valD = Math.pow(10, (cursorX / RULER_WIDTH) - 1);
         const angle = Math.asin(valD) * 180 / Math.PI;
         if (document.activeElement !== valAngle_S) valAngle_S.value = angle.toFixed(2);
@@ -535,7 +552,6 @@ function calculateValues() {
         return (low + high) / 2;
     }
     
-    // Исправлено: убран лишний минус и пробелы в переменных (valueA, RULER_WIDTH, &&)
     const aLog = (bottomOffset / RULER_WIDTH) * MAX_FACT_LOG;
     const valueA = findInvFactorial(aLog);
 
@@ -559,11 +575,18 @@ function calculateValues() {
     if (inputResult) {
         inputResult.value = valueM.toFixed(4);
     }
+
+    const factA = getFact(valueA);
+    const factB = getFact(valueB);
+    const product = factA * factB;
+    const inputProduct = document.getElementById('valFactProduct');
+    if (inputProduct) {
+        inputProduct.innerText = product < 1e6 ? Math.round(product) : product.toExponential(3);
+    }
     return;
     }
 }
 
-// --- НОВЫЕ ОБРАБОТЧИКИ ВВОДА С КОММИТА 06.06 ---
 const valAngle_S = document.getElementById('valAngle_S');
 valAngle_S?.addEventListener('input', function() {
     if (currentMode !== 4) return;
@@ -710,7 +733,7 @@ scaleButtons.forEach(button => {
         
         currentMode = mode;
 
-        if (currentMode !== 1 && currentMode !== 14) {
+        if (currentMode !== 1 && currentMode !== 2 && currentMode !== 3 && currentMode !== 14) {
             bottomOffset = 0;
             bottomRuler.style.transform = `translateX(0px)`;
         }

@@ -48,12 +48,13 @@
     </div>
     <!-- Режим 2: Квадрат -->
     <div class="formula-block" data-mode="2">
-        Формула: <input type="number" id="valA_sq" value="1.000" step="0.001" min="1" max="10"><span class="power">2</span> = 
-        <input type="number" id="valResult_sq" value="1.000" step="0.001" readonly>
+        Формула: <input type="number" id="valN_sq" value="1.000" step="0.001" min="1" max="10" readonly style="color: #888;"> × 
+        <input type="number" id="valA_sq" value="3.003" step="0.001" min="1" max="10"><span class="power">2</span>  = 
+        <input type="number" id="valResult_sq" value="9.016" step="0.001" readonly>
     </div>
     <!-- Режим 3: Куб -->
     <div class="formula-block" data-mode="3">
-        Формула: <input type="number" id="valA_cb" value="1.000" step="0.001" min="1" max="10"><span class="power">3</span> = 
+        Формула:  <input type="number" id="valN_cb" readonly> × <input type="number" id="valA_cb">³ =
         <input type="number" id="valResult_cb" value="1.000" step="0.001" readonly>
     </div>
     <!-- Режим 4: Синус -->
@@ -108,10 +109,13 @@
     </div>
     <!-- Режим 14: Факториал -->
     <div class="formula-block" data-mode="14">
-        Формула: <input type="number" id="valFactA" value="2" step="0.1" min="1" max="7">!   *
-                 <input type="number" id="valFactB" value="2" step="0.1" min="1" max="7">! = 
-        <input type="number" id="valResult_Fact" value="1.571" step="0.001" readonly><!DOCTYPE html>
-    </div>
+        Формула: <input type="number" id="valFactA" value="3" step="0.5" min="0.5" max="7">! × 
+        <input type="number" id="valFactB" value="5" step="0.5" min="0.5" max="7">! ≈ 
+        <input type="number" id="valResult_Fact" value="6" step="0.01" readonly>!
+        <span style="color: #888; font-size: 14px;">
+        (= <span id="valFactProduct" style="color: #d32f2f; font-weight: bold;">720</span>)
+    </span>
+</div>
     </div>
 
     <div class="instructions">
@@ -129,6 +133,7 @@
             1. Нижняя линейка (шкала D) зафиксирована.<br>
             2. Введите число в поле или <strong>перетащите красный бегунок</strong> на нужное число на нижней линейке.<br>
             3. На верхней линейке (шкала A, 2 цикла) под красной чертой — квадрат этого числа!
+            4. При сдвиге линейки получится N × x².
         </div>
         <!-- Инструкция для куба -->
         <div class="instruction-block" data-mode="3">
@@ -136,6 +141,7 @@
             1. Нижняя линейка (шкала D) зафиксирована.<br>
             2. Введите число в поле или <strong>перетащите красный бегунок</strong> на нужное число на нижней линейке.<br>
             3. На верхней линейке (шкала K, 3 цикла) под красной чертой — куб этого числа!
+            4. При сдвиге линейки получится N × x^3.
         </div>
         <!-- Инструкция для синуса -->
         <div class="instruction-block" data-mode="4">
@@ -196,9 +202,12 @@
         2. На верхней шкале CIF под чертой — результат π/x.
     </div>
     <div class="instruction-block" data-mode="14">
-        <strong>Обратная сложенная (CIF):</strong><br>
-        1. Введите число (1-10) или перетащите бегунок на нижней шкале CI.<br>
-        2. На верхней шкале CIF под чертой — результат π/x.
+        <strong>Факториальная линейка (Гамма-функция):</strong><br>
+        1. Шкала нанесена по значениям log(n!), включая дробные числа (шаг 0.5).<br>
+        2. Введите n и k — бегунок покажет log(n!) + log(k!).<br>
+        3. Если результат равен log(m!) для целого m — вы нашли редкое совпадение!<br>
+        4. Попробуйте: 3! × 5! = 6! = 720 ✓<br>
+        5. Для дробных чисел используется Γ(n+1) = ₀^∞ t^(n)·e^(-t)dt
     </div>
         </div>
 
